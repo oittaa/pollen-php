@@ -30,19 +30,12 @@ if (empty($_REQUEST["challenge"])) {
     http_response_code(400);
     exit($errortxt);
 }
-
 $challengeresponse = hash($algo, $_REQUEST["challenge"]);
-file_put_contents($device, $challengeresponse);
-
-try {
-    $bytes = file_get_contents($device, false, null, -1, $size);
-    if ($bytes === false) {
-        throw new Exception('Failed to read from random device');
-    }
-    $seed = hash($algo, $bytes);
-} catch (Exception $e) {
+file_put_contents($device, $challengeresponse); // update the entropy pool
+$bytes = file_get_contents($device, false, null, -1, $size);
+if ($bytes === false) {
     http_response_code(500);
-    exit($e->getMessage()."\n");
+    exit("Failed to read from random device\n");
 }
-
+$seed = hash($algo, $bytes);
 printf("%s\n%s\n", $challengeresponse, $seed);
